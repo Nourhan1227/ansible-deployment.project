@@ -1,0 +1,95 @@
+---
+- name: install docker
+  hosts: servers
+  become: yes
+  become_user: root
+  tasks:
+  #  - name: Install Docker and Docker Compose
+  #    pip:
+  #     name: docker
+  #       # - docker
+  #       # - docker-compose
+  #     state: present
+  #     extra_args:  --ignore-installed
+   - name: Install python-pip package
+     package:
+        name: python-pip
+        state: present
+   - name: install docker
+     yum:
+       name: docker
+       update_cache: yes
+       state: present
+   - name: start docker
+     systemd:
+       name: docker
+       state: started
+   - name: add ec2-user inside the docker group to enable it to use docker commands
+     user:
+       name: ec2-user
+       groups: docker
+       append: yes
+   - name: reconnect to server session
+     meta: reset_connection
+
+   - name: install docker compose
+     get_url:
+        url: https://github.com/docker/compose/releases/latest//download/docker-compose-Linux-x86_64
+        dest: /usr/local/bin/docker-compose
+        mode: +x   #to be executable
+   - name: Log in to Docker Hub
+     docker_login:
+        username: nourhan01289
+        password: tfwknlm01289@@@
+   - name: Pull Docker image
+     docker_image:
+        name:  nourhan01289/myapp:10.0  
+        source: pull  
+   
+    #  when: ansible_os_family == "RedHat"
+
+  #  - name: Install Ansible
+  #    pip:
+  #       name: ansible
+  #       state: present
+
+  #  - name: Install community.general collection
+  #    ansible.builtin.command:
+  #       cmd: sudo ansible-galaxy collection install community.docker
+
+   - name: Copy file from local to remote
+     ansible.builtin.copy:
+       src: /home/nour/docker-project/Develop-with-docker/compose.yml
+       dest: /home/ec2-user/compose.yml
+      #  chdir: /home/ec2-user/
+   - name: Ensure Docker Compose services are up
+     shell: docker-compose -f /home/ec2-user/compose.yml up -d
+
+  #  - name: Ensure Docker Compose services are up
+  #    community.docker.docker_compose:
+  #       project_src: /home/ec2-user/compose.yml
+  #       state: present
+
+  #  - name: Run Docker Compose
+  #    community.docker.docker_compose:
+  #       project_src: /home/ec2-user/compose.yml
+  #       # project_name: myproject
+  #       state: present
+     
+    
+  #  - name: Run Docker Compose
+  #    ansible.builtin.docker_compose:
+  #        project_src: /home/ec2-user/docker-compose.yaml
+  #        project_name: myproject  
+  #        state: present 
+  
+
+  #  - name: run docker compose
+  #    docker_compose:
+  #   #  community.docker.docker_compose_v2:
+  #       project_src: /home/ec2-user
+  #       state: present
+       
+
+   
+
